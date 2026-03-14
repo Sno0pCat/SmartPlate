@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Macro Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Macro Tracker</h1>
+        <p class="subtitle">Track your meals, calories, and progress.</p>
+
+        <div class="card">
+    <h2>Log a Meal</h2>
+
+    {% if message %}
+        <p><strong>{{ message }}</strong></p>
+    {% endif %}
+
+    <form method="POST" action="/add_meal">
+        <label>Food Name</label>
+        <input type="text" name="food" id="foodInput" list="foodSuggestions" required>
+
+        <datalist id="foodSuggestions">
+            {% for food_name in food_names %}
+                <option value="{{ food_name }}">
+            {% endfor %}
+        </datalist>
+
+        <label>Meal Type</label>
+        <select name="meal_type" required>
+            <option value="Breakfast">Breakfast</option>
+            <option value="Lunch">Lunch</option>
+            <option value="Dinner">Dinner</option>
+        </select>
+
+        <label>Quantity Consumed (grams)</label>
+        <input type="number" step="0.1" name="quantity_consumed" required>
+
+        <p><strong>Only fill out the fields below if this is a new food.</strong></p>
+
+        <label>Base Amount for Macros (grams)</label>
+        <input type="number" step="0.1" name="base_amount">
+
+        <label>Protein for Base Amount (g)</label>
+        <input type="number" step="0.1" name="protein">
+
+        <label>Carbs for Base Amount (g)</label>
+        <input type="number" step="0.1" name="carbs">
+
+        <label>Fat for Base Amount (g)</label>
+        <input type="number" step="0.1" name="fat">
+
+        <button type="submit">Add Meal</button>
+    </form>
+</div>
+
+        <div class="card">
+            <h2>Today's Summary ({{ today }})</h2>
+            <p><strong>Total Calories:</strong> {{ total_calories }}</p>
+            <p><strong>Total Protein:</strong> {{ total_protein }}g</p>
+            <p><strong>Total Carbs:</strong> {{ total_carbs }}g</p>
+            <p><strong>Total Fat:</strong> {{ total_fat }}g</p>
+        </div>
+
+        <div class="card">
+    <h2>Today's Meals</h2>
+
+    <h3>Breakfast</h3>
+    {% if breakfast_meals %}
+        <ul>
+            {% for meal in breakfast_meals %}
+               <li>
+                    <strong>{{ meal.food }}</strong> ({{ meal.quantity_consumed }}g) -
+                        Protein: {{ meal.protein }}g,
+                        Carbs: {{ meal.carbs }}g,
+                        Fat: {{ meal.fat }}g,
+                        Calories: {{ meal.calories }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No breakfast meals logged.</p>
+    {% endif %}
+
+    <h3>Lunch</h3>
+    {% if lunch_meals %}
+        <ul>
+            {% for meal in lunch_meals %}
+               <li>
+                    <strong>{{ meal.food }}</strong> ({{ meal.quantity_consumed }}g) -
+                        Protein: {{ meal.protein }}g,
+                        Carbs: {{ meal.carbs }}g,
+                        Fat: {{ meal.fat }}g,
+                        Calories: {{ meal.calories }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No lunch meals logged.</p>
+    {% endif %}
+
+    <h3>Dinner</h3>
+    {% if dinner_meals %}
+        <ul>
+            {% for meal in dinner_meals %}
+               <li>
+                    <strong>{{ meal.food }}</strong> ({{ meal.quantity_consumed }}g) -
+                        Protein: {{ meal.protein }}g,
+                        Carbs: {{ meal.carbs }}g,
+                        Fat: {{ meal.fat }}g,
+                        Calories: {{ meal.calories }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No dinner meals logged.</p>
+    {% endif %}
+</div>
+    </div>
+</body>
+</html>

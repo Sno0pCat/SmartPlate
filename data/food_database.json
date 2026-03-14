@@ -1,0 +1,37 @@
+{
+    "oatmeal": {
+        "base_amount": 100.0,
+        "base_unit": "grams",
+        "protein": 5.0,
+        "carbs": 27.0,
+        "fat": 3.0
+    },
+    "chicken breast": {
+        "base_amount": 100.0,
+        "base_unit": "grams",
+        "protein": 30.0,
+        "carbs": 0.0,
+        "fat": 8.0
+    },
+    "banana": {
+        "base_amount": 100.0,
+        "base_unit": "grams",
+        "protein": 3.0,
+        "carbs": 30.0,
+        "fat": 2.0
+    },
+    "turkey sandwhich": {
+        "base_amount": 100.0,
+        "base_unit": "grams",
+        "protein": 12.0,
+        "carbs": 25.0,
+        "fat": 4.0
+    },
+    "egg": {
+        "base_amount": 40.0,
+        "base_unit": "grams",
+        "protein": 6.0,
+        "carbs": 0.0,
+        "fat": 4.0
+    }
+}
