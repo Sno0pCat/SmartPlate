@@ -2,92 +2,113 @@
     "oatmeal": {
         "base_amount": 100.0,
         "base_unit": "grams",
-        "protein": 5.0,
-        "carbs": 27.0,
-        "fat": 3.0
+        "protein": 2.4,
+        "carbs": 12.0,
+        "fat": 1.4
     },
     "chicken breast": {
         "base_amount": 100.0,
         "base_unit": "grams",
-        "protein": 30.0,
+        "protein": 31.0,
         "carbs": 0.0,
-        "fat": 8.0
+        "fat": 3.6
     },
     "banana": {
         "base_amount": 100.0,
         "base_unit": "grams",
-        "protein": 3.0,
-        "carbs": 30.0,
-        "fat": 2.0
+        "protein": 1.1,
+        "carbs": 23.0,
+        "fat": 0.3
     },
-    "turkey sandwhich": {
-        "base_amount": 100.0,
+    "turkey sandwich": {
+        "base_amount": 150.0,
         "base_unit": "grams",
-        "protein": 12.0,
-        "carbs": 25.0,
-        "fat": 4.0
+        "protein": 18.0,
+        "carbs": 30.0,
+        "fat": 6.0
     },
     "egg": {
-        "base_amount": 40.0,
+        "base_amount": 50.0,
         "base_unit": "grams",
-        "protein": 6.0,
-        "carbs": 0.0,
-        "fat": 4.0
+        "protein": 6.3,
+        "carbs": 0.4,
+        "fat": 5.0
     },
     "rice cake": {
-        "base_amount": 10.0,
+        "base_amount": 9.0,
         "base_unit": "grams",
-        "protein": 1.0,
-        "carbs": 7.0,
-        "fat": 0.0
+        "protein": 0.7,
+        "carbs": 7.3,
+        "fat": 0.3
     },
     "pancake": {
         "base_amount": 100.0,
         "base_unit": "grams",
-        "protein": 20.0,
-        "carbs": 50.0,
-        "fat": 12.0
+        "protein": 6.0,
+        "carbs": 28.0,
+        "fat": 8.0
     },
     "steak": {
         "base_amount": 100.0,
         "base_unit": "grams",
-        "protein": 50.0,
+        "protein": 26.0,
         "carbs": 0.0,
         "fat": 20.0
     },
     "chicken and rice": {
         "base_amount": 300.0,
         "base_unit": "grams",
-        "protein": 60.0,
-        "carbs": 150.0,
-        "fat": 20.0
+        "protein": 35.0,
+        "carbs": 45.0,
+        "fat": 8.0
     },
     "rice": {
         "base_amount": 100.0,
         "base_unit": "grams",
-        "protein": 3.0,
-        "carbs": 33.0,
-        "fat": 2.0
+        "protein": 2.7,
+        "carbs": 28.0,
+        "fat": 0.3
     },
     "soda": {
-        "base_amount": 160.0,
+        "base_amount": 355.0,
         "base_unit": "grams",
-        "protein": 2.0,
-        "carbs": 34.0,
-        "fat": 8.0
+        "protein": 0.0,
+        "carbs": 39.0,
+        "fat": 0.0
     },
     "bacon": {
         "base_amount": 10.0,
         "base_unit": "grams",
-        "protein": 4.0,
-        "carbs": 4.0,
-        "fat": 5.0
+        "protein": 3.0,
+        "carbs": 0.1,
+        "fat": 4.0
     },
     "salmon": {
         "base_amount": 100.0,
         "base_unit": "grams",
-        "protein": 30.0,
-        "carbs": 12.0,
+        "protein": 25.0,
+        "carbs": 0.0,
+        "fat": 13.0
+    },
+    "brown rice": {
+        "base_amount": 195.0,
+        "base_unit": "grams",
+        "protein": 5.0,
+        "carbs": 25.0,
+        "fat": 1.7
+    },
+    "apple": {
+        "base_amount": 100.0,
+        "base_unit": "grams",
+        "protein": 2.0,
+        "carbs": 35.0,
+        "fat": 1.0
+    },
+    "jasmine rice": {
+        "base_amount": 150.0,
+        "base_unit": "grams",
+        "protein": 4.0,
+        "carbs": 36.0,
         "fat": 8.0
     }
 }

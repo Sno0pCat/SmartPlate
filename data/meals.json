@@ -95,16 +95,52 @@
     ],
     "2026-03-17": [
         {
-            "food": "salmon",
-            "meal_type": "Breakfast",
-            "quantity_consumed": 110.0,
-            "original_quantity": 110.0,
-            "unit": "g",
+            "food": "chicken breast",
+            "meal_type": "Dinner",
+            "quantity_consumed": 100.0,
             "base_amount": 100.0,
-            "protein": 33.0,
-            "carbs": 13.2,
-            "fat": 8.8,
-            "calories": 264.0
+            "protein": 31.0,
+            "carbs": 0.0,
+            "fat": 3.6,
+            "unit": "g",
+            "original_quantity": 100.0,
+            "calories": 156.4
+        },
+        {
+            "food": "salmon",
+            "meal_type": "Lunch",
+            "quantity_consumed": 100.0,
+            "base_amount": 100.0,
+            "protein": 25.0,
+            "carbs": 0.0,
+            "fat": 13.0,
+            "unit": "g",
+            "original_quantity": 100.0,
+            "calories": 217.0
+        },
+        {
+            "food": "jasmine rice",
+            "meal_type": "Lunch",
+            "quantity_consumed": 100.0,
+            "base_amount": 150.0,
+            "protein": 2.7,
+            "carbs": 24.0,
+            "fat": 5.3,
+            "unit": "g",
+            "original_quantity": 100.0,
+            "calories": 154.5
+        },
+        {
+            "food": "jasmine rice",
+            "meal_type": "Dinner",
+            "quantity_consumed": 50.0,
+            "base_amount": 150.0,
+            "protein": 1.3,
+            "carbs": 12.0,
+            "fat": 2.7,
+            "unit": "g",
+            "original_quantity": 50.0,
+            "calories": 77.5
         }
     ]
 }
