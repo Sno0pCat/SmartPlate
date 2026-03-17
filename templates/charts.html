@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charts - Macro Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container page-content">
+        <div class="dashboard-header">
+            <h1>Charts</h1>
+        </div>
+
+        {% if message %}
+            <div class="card">
+                <p><strong>{{ message }}</strong></p>
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <h2>Chart Range</h2>
+
+            <form method="GET" action="/charts">
+                <label>Select Time Range</label>
+                <select name="range" required>
+                    <option value="7days" {% if chart_range == "7days" %}selected{% endif %}>Last 7 Days</option>
+                    <option value="4weeks" {% if chart_range == "4weeks" %}selected{% endif %}>Last 4 Weeks</option>
+                    <option value="6months" {% if chart_range == "6months" %}selected{% endif %}>Last 6 Months</option>
+                    <option value="lastyear" {% if chart_range == "lastyear" %}selected{% endif %}>Last Year</option>
+                    <option value="ytd" {% if chart_range == "ytd" %}selected{% endif %}>Year to Date</option>
+                </select>
+
+                <button type="submit">Update Charts</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Calories</h2>
+            <canvas id="calorieChart"></canvas>
+        </div>
+
+        <div class="card">
+            <h2>Macros</h2>
+            <canvas id="macroChart"></canvas>
+        </div>
+
+        <div class="card">
+            <h2>Weight</h2>
+            <canvas id="weightChart"></canvas>
+        </div>
+    </div>
+
+    <div class="quick-action-overlay" id="quickActionOverlay"></div>
+
+    <div class="quick-action-menu" id="quickActionMenu">
+        <a href="/log-meal">Log Meal</a>
+        <a href="/weight">Enter Weight</a>
+        <a href="/home#goal-section">Set Daily Goal</a>
+        <a href="/progress#photo-section">Physique Photos</a>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="/home">Home</a>
+        <a href="/diary">Diary</a>
+        <a href="#" class="plus-button" id="plusButton">+</a>
+        <a href="/charts">Charts</a>
+        <a href="/more">More</a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        const labels = {{ labels | default([], true) | tojson }};
+        const data = {{ calories_data | default([], true) | tojson }};
+
+        const calorieCanvas = document.getElementById('calorieChart');
+
+        if (window.calorieChartInstance) {
+            window.calorieChartInstance.destroy();
+        }
+
+        if (calorieCanvas) {
+            const ctx = calorieCanvas.getContext('2d');
+
+            window.calorieChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Calories',
+                        data: data
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+
+    <script>
+        const macroLabels = {{ macro_labels | default([], true) | tojson }};
+        const proteinData = {{ protein_data | default([], true) | tojson }};
+        const carbsData = {{ carbs_data | default([], true) | tojson }};
+        const fatData = {{ fat_data | default([], true) | tojson }};
+
+        const macroCanvas = document.getElementById('macroChart');
+
+        if (window.macroChartInstance) {
+            window.macroChartInstance.destroy();
+        }
+
+        if (macroCanvas) {
+            const macroCtx = macroCanvas.getContext('2d');
+
+            window.macroChartInstance = new Chart(macroCtx, {
+                type: 'line',
+                data: {
+                    labels: macroLabels,
+                    datasets: [
+                        {
+                            label: 'Protein (g)',
+                            data: proteinData
+                        },
+                        {
+                            label: 'Carbs (g)',
+                            data: carbsData
+                        },
+                        {
+                            label: 'Fat (g)',
+                            data: fatData
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+
+    <script>
+        const weightLabels = {{ weight_labels | default([], true) | tojson }};
+        const weightData = {{ weight_data | default([], true) | tojson }};
+
+        const weightCanvas = document.getElementById('weightChart');
+
+        if (window.weightChartInstance) {
+            window.weightChartInstance.destroy();
+        }
+
+        if (weightCanvas) {
+            const weightCtx = weightCanvas.getContext('2d');
+
+            window.weightChartInstance = new Chart(weightCtx, {
+                type: 'line',
+                data: {
+                    labels: weightLabels,
+                    datasets: [
+                        {
+                            label: 'Weight',
+                            data: weightData
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+
+    <script>
+        const plusButton = document.getElementById("plusButton");
+        const quickActionMenu = document.getElementById("quickActionMenu");
+        const quickActionOverlay = document.getElementById("quickActionOverlay");
+
+        plusButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            quickActionMenu.classList.toggle("show-menu");
+            quickActionOverlay.classList.toggle("show-overlay");
+        });
+
+        quickActionOverlay.addEventListener("click", function () {
+            quickActionMenu.classList.remove("show-menu");
+            quickActionOverlay.classList.remove("show-overlay");
+        });
+    </script>
+</body>
+</html>

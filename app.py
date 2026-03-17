@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_from_directory
+from flask import Flask, render_template, request, send_from_directory, redirect, url_for
 import json
 import os
 from datetime import date, timedelta
@@ -10,6 +10,7 @@ FOOD_DATABASE_FILE = "data/food_database.json"
 GOALS_FILE = "data/goals.json"
 WEIGHTS_FILE = "data/weights.json"
 UPLOAD_FOLDER = "uploads"
+WATER_FILE = "data/water.json"
 
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
@@ -76,11 +77,13 @@ def split_meals_by_type(meals):
     dinner_meals = []
 
     for meal in meals:
-        if meal["meal_type"] == "Breakfast":
+        meal_type = meal.get("meal_type", "").strip().title()
+
+        if meal_type == "Breakfast":
             breakfast_meals.append(meal)
-        elif meal["meal_type"] == "Lunch":
+        elif meal_type == "Lunch":
             lunch_meals.append(meal)
-        elif meal["meal_type"] == "Dinner":
+        elif meal_type == "Dinner":
             dinner_meals.append(meal)
 
     return breakfast_meals, lunch_meals, dinner_meals
@@ -152,13 +155,12 @@ def get_last_7_days_weights(weights_data):
 
 def get_chart_range():
     chart_range = request.args.get("range", "7days")
-    allowed_ranges = ["7days", "4weeks", "6months"]
+    allowed_ranges = ["7days", "4weeks", "6months", "lastyear", "ytd"]
 
     if chart_range not in allowed_ranges:
         chart_range = "7days"
 
     return chart_range
-
 
 def get_last_7_days_data(meals_data, weights_data):
     labels = []
@@ -387,13 +389,140 @@ def convert_to_grams(amount, unit):
     else:
         return amount
 
+def get_last_year_data(meals_data, weights_data):
+    labels = []
+    calories_data = []
+    protein_data = []
+    carbs_data = []
+    fat_data = []
+    weight_data = []
+
+    today = date.today()
+    current_year = today.year
+    current_month = today.month
+
+    months = []
+
+    for i in range(11, -1, -1):
+        month = current_month - i
+        year = current_year
+
+        while month <= 0:
+            month += 12
+            year -= 1
+
+        months.append((year, month))
+
+    for year, month in months:
+        label = f"{year}-{str(month).zfill(2)}"
+        labels.append(label)
+
+        month_calories = 0
+        month_protein = 0
+        month_carbs = 0
+        month_fat = 0
+        latest_weight = 0
+
+        for day_str, meals in meals_data.items():
+            parts = day_str.split("-")
+            meal_year = int(parts[0])
+            meal_month = int(parts[1])
+
+            if meal_year == year and meal_month == month:
+                total_protein, total_carbs, total_fat, total_calories = get_daily_totals(meals)
+                month_calories += total_calories
+                month_protein += total_protein
+                month_carbs += total_carbs
+                month_fat += total_fat
+
+        matching_weight_dates = []
+
+        for day_str, weight in weights_data.items():
+            parts = day_str.split("-")
+            weight_year = int(parts[0])
+            weight_month = int(parts[1])
+
+            if weight_year == year and weight_month == month:
+                matching_weight_dates.append(day_str)
+
+        if matching_weight_dates:
+            latest_date = max(matching_weight_dates)
+            latest_weight = weights_data[latest_date]
+
+        calories_data.append(round(month_calories, 1))
+        protein_data.append(round(month_protein, 1))
+        carbs_data.append(round(month_carbs, 1))
+        fat_data.append(round(month_fat, 1))
+        weight_data.append(latest_weight)
+
+    return labels, calories_data, protein_data, carbs_data, fat_data, weight_data
+
+
+def get_ytd_data(meals_data, weights_data):
+    labels = []
+    calories_data = []
+    protein_data = []
+    carbs_data = []
+    fat_data = []
+    weight_data = []
+
+    today = date.today()
+    current_year = today.year
+    current_month = today.month
+
+    for month in range(1, current_month + 1):
+        label = f"{current_year}-{str(month).zfill(2)}"
+        labels.append(label)
+
+        month_calories = 0
+        month_protein = 0
+        month_carbs = 0
+        month_fat = 0
+        latest_weight = 0
+
+        for day_str, meals in meals_data.items():
+            parts = day_str.split("-")
+            meal_year = int(parts[0])
+            meal_month = int(parts[1])
+
+            if meal_year == current_year and meal_month == month:
+                total_protein, total_carbs, total_fat, total_calories = get_daily_totals(meals)
+                month_calories += total_calories
+                month_protein += total_protein
+                month_carbs += total_carbs
+                month_fat += total_fat
+
+        matching_weight_dates = []
+
+        for day_str, weight in weights_data.items():
+            parts = day_str.split("-")
+            weight_year = int(parts[0])
+            weight_month = int(parts[1])
+
+            if weight_year == current_year and weight_month == month:
+                matching_weight_dates.append(day_str)
+
+        if matching_weight_dates:
+            latest_date = max(matching_weight_dates)
+            latest_weight = weights_data[latest_date]
+
+        calories_data.append(round(month_calories, 1))
+        protein_data.append(round(month_protein, 1))
+        carbs_data.append(round(month_carbs, 1))
+        fat_data.append(round(month_fat, 1))
+        weight_data.append(latest_weight)
+
+    return labels, calories_data, protein_data, carbs_data, fat_data, weight_data
+
 def build_home_page(
     message="",
     selected_food_name="",
     selected_food_data=None,
     edit_meal=None,
     edit_meal_index=None,
-    selected_photo_date=""
+    selected_photo_date="",
+    compare_date_1="",
+    compare_date_2=""
 ):
 
     food_database = load_food_database()
@@ -409,6 +538,9 @@ def build_home_page(
     selected_photo = get_photo_for_date(selected_photo_date)
     today_photo = get_today_photo_filename()
 
+    compare_photo_1 = get_photo_for_date(compare_date_1) if compare_date_1 else None
+    compare_photo_2 = get_photo_for_date(compare_date_2) if compare_date_2 else None
+
 
     today = str(date.today())
     todays_meals = meals_data.get(today, [])
@@ -421,12 +553,18 @@ def build_home_page(
     daily_calorie_goal = goals_data.get("daily_calorie_goal", 2000)
     calories_remaining = round(daily_calorie_goal - total_calories, 1)
 
-    if chart_range == "7days": 
+    if chart_range == "7days":
         labels, calories_data, protein_data, carbs_data, fat_data, weight_data = get_last_7_days_data(meals_data, weights_data)
     elif chart_range == "4weeks":
         labels, calories_data, protein_data, carbs_data, fat_data, weight_data = get_last_4_weeks_data(meals_data, weights_data)
-    else:
+    elif chart_range == "6months":
         labels, calories_data, protein_data, carbs_data, fat_data, weight_data = get_last_6_months_data(meals_data, weights_data)
+    elif chart_range == "lastyear":
+        labels, calories_data, protein_data, carbs_data, fat_data, weight_data = get_last_year_data(meals_data, weights_data)
+    elif chart_range == "ytd":
+        labels, calories_data, protein_data, carbs_data, fat_data, weight_data = get_ytd_data(meals_data, weights_data)
+    else:
+        labels, calories_data, protein_data, carbs_data, fat_data, weight_data = get_last_7_days_data(meals_data, weights_data)
 
     macro_labels = labels
     weight_labels = labels
@@ -460,19 +598,288 @@ def build_home_page(
         edit_meal_index=edit_meal_index,
         weight_labels=weight_labels,
         weight_data=weight_data,
-        latest_weight=latest_weight,
-        chart_range=chart_range,
         today_photo=today_photo,
         photo_dates=photo_dates,
         selected_photo_date=selected_photo_date,
         selected_photo=selected_photo,
+        compare_date_1=compare_date_1,
+        compare_date_2=compare_date_2,
+        compare_photo_1=compare_photo_1,
+        compare_photo_2=compare_photo_2,
+        chart_range=chart_range,
         calories_data=calories_data
     )
+
+def get_selected_home_date():
+    selected_date = request.args.get("date", "")
+
+    if selected_date == "":
+        return str(date.today())
+
+    return selected_date
+
+def get_shared_page_data(selected_date=None):
+    meals_data = load_meals()
+    food_database = load_food_database()
+    weights_data = load_weights()
+    water_data = load_water()
+
+    today = str(date.today())
+    if selected_date is None:
+        selected_date = today
+
+    todays_meals = meals_data.get(selected_date, [])
+    indexed_meals = add_meal_indexes(todays_meals)
+    water_count = water_data.get(selected_date, 0)
+    water_goal = 8
+    water_percent = round((water_count / water_goal) * 100, 1) if water_goal > 0 else 0
+
+    breakfast_meals, lunch_meals, dinner_meals = split_meals_by_type(indexed_meals)
+    total_protein, total_carbs, total_fat, total_calories = get_daily_totals(todays_meals)
+
+    goals_data = load_goals()
+    daily_calorie_goal = goals_data.get("daily_calorie_goal", 2000)
+    calories_remaining = round(daily_calorie_goal - total_calories, 1)
+
+    protein_goal = goals_data.get("protein_goal", 0)
+    carbs_goal = goals_data.get("carbs_goal", 0)
+    fat_goal = goals_data.get("fat_goal", 0)
+
+    protein_remaining = round(protein_goal - total_protein, 1)
+    carbs_remaining = round(carbs_goal - total_carbs, 1)
+    fat_remaining = round(fat_goal - total_fat, 1)
+
+    chart_range = get_chart_range()
+
+    if chart_range == "7days":
+        labels, calories_data, protein_data, carbs_data, fat_data, weight_data = get_last_7_days_data(meals_data, weights_data)
+    elif chart_range == "4weeks":
+        labels, calories_data, protein_data, carbs_data, fat_data, weight_data = get_last_4_weeks_data(meals_data, weights_data)
+    elif chart_range == "6months":
+        labels, calories_data, protein_data, carbs_data, fat_data, weight_data = get_last_6_months_data(meals_data, weights_data)
+    elif chart_range == "lastyear":
+        labels, calories_data, protein_data, carbs_data, fat_data, weight_data = get_last_year_data(meals_data, weights_data)
+    elif chart_range == "ytd":
+        labels, calories_data, protein_data, carbs_data, fat_data, weight_data = get_ytd_data(meals_data, weights_data)
+    else:
+        labels, calories_data, protein_data, carbs_data, fat_data, weight_data = get_last_7_days_data(meals_data, weights_data)
+
+    macro_labels = labels
+    weight_labels = labels
+
+    latest_weight = weights_data.get(selected_date, "")
+    food_names = sorted(food_database.keys())
+
+    photo_dates = get_uploaded_photo_dates()
+    selected_photo_date = selected_date
+    selected_photo = get_photo_for_date(selected_photo_date)
+    
+    return {
+        "today": today,
+        "breakfast_meals": breakfast_meals,
+        "lunch_meals": lunch_meals,
+        "dinner_meals": dinner_meals,
+        "total_protein": total_protein,
+        "total_carbs": total_carbs,
+        "total_fat": total_fat,
+        "total_calories": total_calories,
+        "daily_calorie_goal": daily_calorie_goal,
+        "calories_remaining": calories_remaining,
+        "chart_range": chart_range,
+        "labels": labels,
+        "calories_data": calories_data,
+        "macro_labels": macro_labels,
+        "protein_data": protein_data,
+        "carbs_data": carbs_data,
+        "fat_data": fat_data,
+        "weight_labels": weight_labels,
+        "weight_data": weight_data,
+        "latest_weight": latest_weight,
+        "food_names": food_names,
+        "photo_dates": photo_dates,
+        "selected_photo_date": selected_photo_date,
+        "protein_goal": protein_goal,
+        "carbs_goal": carbs_goal,
+        "fat_goal": fat_goal,
+        "protein_remaining": protein_remaining,
+        "carbs_remaining": carbs_remaining,
+        "fat_remaining": fat_remaining,
+        "water_count": water_count,
+        "water_goal": water_goal,
+        "water_percent": water_percent,
+        "selected_date": selected_date,
+        "selected_photo": selected_photo
+    }
+
+def build_home_dashboard(message=""):
+    selected_date = get_selected_home_date()
+    page_data = get_shared_page_data(selected_date=selected_date)
+    current_date_obj = date.fromisoformat(selected_date)
+    prev_date = str(current_date_obj - timedelta(days=1))
+    next_date = str(current_date_obj + timedelta(days=1))
+
+
+    food_consumed = page_data["total_calories"]
+    exercise_calories = 0
+    remaining_calories = round(page_data["daily_calorie_goal"] - food_consumed + exercise_calories, 1)
+
+    if page_data["daily_calorie_goal"] > 0:
+        progress_percent = round((food_consumed / page_data["daily_calorie_goal"]) * 100, 1)
+    else:
+        progress_percent = 0
+
+    progress_percent = max(0, min(progress_percent, 100))
+
+    protein_goal = page_data.get("protein_goal", 0)
+    carbs_goal = page_data.get("carbs_goal", 0)
+    fat_goal = page_data.get("fat_goal", 0)
+
+    protein_progress = 0
+    carbs_progress = 0
+    fat_progress = 0
+
+    if protein_goal > 0:
+        protein_progress = round((page_data["total_protein"] / protein_goal) * 100, 1)
+    if carbs_goal > 0:
+        carbs_progress = round((page_data["total_carbs"] / carbs_goal) * 100, 1)
+    if fat_goal > 0:
+        fat_progress = round((page_data["total_fat"] / fat_goal) * 100, 1)
+
+    protein_progress = max(0, min(protein_progress, 100))
+    carbs_progress = max(0, min(carbs_progress, 100))
+    fat_progress = max(0, min(fat_progress, 100))
+
+    return render_template(
+        "home.html",
+        message=message,
+        food_consumed=food_consumed,
+        exercise_calories=exercise_calories,
+        remaining_calories=remaining_calories,
+        progress_percent=progress_percent,
+        protein_progress=protein_progress,
+        carbs_progress=carbs_progress,
+        fat_progress=fat_progress,
+        prev_date=prev_date,
+        next_date=next_date,
+        **page_data
+    )
+
+def build_diary_page(message="", edit_meal=None, edit_meal_index=None):
+    page_data = get_shared_page_data()
+    return render_template(
+        "diary.html",
+        message=message,
+        edit_meal=edit_meal,
+        edit_meal_index=edit_meal_index,
+        **page_data
+    )
+
+def build_log_meal_page(message=""):
+    page_data = get_shared_page_data()
+    return render_template("log_meal.html", message=message, **page_data)
+
+def build_progress_page(message="", compare_date_1="", compare_date_2="", selected_photo_date=""):
+    page_data = get_shared_page_data()
+
+    if selected_photo_date == "":
+        selected_photo_date = page_data.get("selected_photo_date", "")
+
+    selected_photo = get_photo_for_date(selected_photo_date)
+    compare_photo_1 = get_photo_for_date(compare_date_1) if compare_date_1 else None
+    compare_photo_2 = get_photo_for_date(compare_date_2) if compare_date_2 else None
+
+    page_data["selected_photo_date"] = selected_photo_date
+    page_data["selected_photo"] = selected_photo
+    page_data["compare_date_1"] = compare_date_1
+    page_data["compare_date_2"] = compare_date_2
+    page_data["compare_photo_1"] = compare_photo_1
+    page_data["compare_photo_2"] = compare_photo_2
+
+    return render_template(
+        "progress.html",
+        message=message,
+        **page_data
+    )
+
+def build_charts_page(message=""):
+    page_data = get_shared_page_data()
+
+    return render_template(
+        "charts.html",
+        message=message,
+        **page_data
+    )
+
+def build_weight_page(message=""):
+    page_data = get_shared_page_data()
+    return render_template(
+        "weight.html",
+        message=message,
+        **page_data
+    )
+
+def calculate_goal_plan(goal_type, current_weight, weeks, workout_days):
+    maintenance_calories = current_weight * 15
+
+    if goal_type == "cut":
+        target_calories = maintenance_calories - 300
+    elif goal_type == "bulk":
+        target_calories = maintenance_calories + 250
+    else:
+        target_calories = maintenance_calories
+
+    if workout_days <= 2:
+        target_calories -= 100
+    elif workout_days >= 5:
+        target_calories += 100
+
+    protein_grams = current_weight * 1.0
+    fat_grams = current_weight * 0.3
+
+    protein_calories = protein_grams * 4
+    fat_calories = fat_grams * 9
+
+    remaining_calories = target_calories - protein_calories - fat_calories
+    carbs_grams = remaining_calories / 4
+
+    if carbs_grams < 0:
+        carbs_grams = 0
+
+    return {
+        "target_calories": round(target_calories, 1),
+        "protein_grams": round(protein_grams, 1),
+        "fat_grams": round(fat_grams, 1),
+        "carbs_grams": round(carbs_grams, 1),
+        "weeks": weeks,
+        "goal_type": goal_type,
+        "workout_days": workout_days
+    }
+
+def build_goal_planner_page(message="", plan_result=None):
+    page_data = get_shared_page_data()
+    return render_template(
+        "goal_planner.html",
+        message=message,
+        plan_result=plan_result,
+        **page_data
+    )
+
+def load_water():
+    try:
+        with open(WATER_FILE, "r") as file:
+            return json.load(file)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def save_water(water_data):
+    with open(WATER_FILE, "w") as file:
+        json.dump(water_data, file, indent=4)
 
 
 @app.route("/")
 def home():
-    return build_home_page()
+    return build_home_dashboard()
 
 
 @app.route("/check_food", methods=["POST"])
@@ -497,20 +904,27 @@ def check_food():
 @app.route("/set_goal", methods=["POST"])
 def set_goal():
     daily_calorie_goal = float(request.form["daily_calorie_goal"])
+    selected_date = request.form.get("selected_date", str(date.today()))
 
-    goals_data = {
-        "daily_calorie_goal": daily_calorie_goal
-    }
+    goals_data = load_goals()
+    goals_data["daily_calorie_goal"] = daily_calorie_goal
+
+    if "protein_goal" not in goals_data:
+        goals_data["protein_goal"] = 0
+    if "carbs_goal" not in goals_data:
+        goals_data["carbs_goal"] = 0
+    if "fat_goal" not in goals_data:
+        goals_data["fat_goal"] = 0
 
     save_goals(goals_data)
 
-    return build_home_page(message="Daily calorie goal updated.")
+    return redirect(url_for("home", date=selected_date))
 
 @app.route("/add_meal", methods=["POST"])
 def add_meal():
     food = request.form["food"].strip()
     food_key = food.lower()
-    meal_type = request.form["meal_type"]
+    meal_type = request.form["meal_type"].strip().title()
     quantity_input = float(request.form["quantity_consumed"])
     unit = request.form["unit"]
 
@@ -539,7 +953,7 @@ def add_meal():
         )
 
         if missing_new_food_info:
-            return build_home_page(message="For a new food, enter base amount, protein, carbs, and fat.")
+            return build_log_meal_page(message="For a new food, enter base amount, protein, carbs, and fat.")
 
         base_amount = float(base_amount_text)
         protein = float(protein_text)
@@ -584,7 +998,7 @@ def add_meal():
     meals_data[today].append(new_meal)
     save_meals(meals_data)
 
-    return build_home_page(message="Meal added successfully.")
+    return build_log_meal_page(message="Meal added successfully.")
 
 @app.route("/delete_meal", methods=["POST"])
 def delete_meal():
@@ -600,7 +1014,7 @@ def delete_meal():
     meals_data[today] = todays_meals
     save_meals(meals_data)
 
-    return build_home_page(message="Meal deleted successfully.")
+    return build_diary_page(message="Meal deleted successfully.")
 
 @app.route("/edit_meal", methods=["POST"])
 def edit_meal():
@@ -612,63 +1026,42 @@ def edit_meal():
 
     if 0 <= meal_index < len(todays_meals):
         meal_to_edit = todays_meals[meal_index]
-        return build_home_page(
+
+        if "original_quantity" not in meal_to_edit:
+            meal_to_edit["original_quantity"] = meal_to_edit.get("quantity_consumed", "")
+        if "unit" not in meal_to_edit:
+            meal_to_edit["unit"] = "g"
+
+        return build_diary_page(
             message="Editing meal.",
-            selected_food_name=meal_to_edit["food"],
-            selected_food_data=None,
             edit_meal=meal_to_edit,
             edit_meal_index=meal_index
         )
 
-    return build_home_page(message="Meal not found.")
+    return build_diary_page(message="Meal not found.")
 
 
 @app.route("/update_meal", methods=["POST"])
 def update_meal():
     meal_index = int(request.form["meal_index"])
     food = request.form["food"].strip()
-    meal_type = request.form["meal_type"]
+    food_key = food.lower()
+    meal_type = request.form["meal_type"].strip().title()
+
     quantity_input = float(request.form["quantity_consumed"])
     unit = request.form["unit"]
-
     quantity_consumed = convert_to_grams(quantity_input, unit)
 
     food_database = load_food_database()
-    food_key = food.lower()
 
-    if food_key in food_database:
-        saved_food = food_database[food_key]
-        base_amount = float(saved_food["base_amount"])
-        protein = float(saved_food["protein"])
-        carbs = float(saved_food["carbs"])
-        fat = float(saved_food["fat"])
-    else:
-        base_amount_text = request.form.get("base_amount", "").strip()
-        protein_text = request.form.get("protein", "").strip()
-        carbs_text = request.form.get("carbs", "").strip()
-        fat_text = request.form.get("fat", "").strip()
+    if food_key not in food_database:
+        return build_diary_page(message="This food is not in the saved food database, so it cannot be edited here.")
 
-        if (
-            base_amount_text == "" or
-            protein_text == "" or
-            carbs_text == "" or
-            fat_text == ""
-        ):
-            return build_home_page(message="For a new food, enter base amount, protein, carbs, and fat.")
-
-        base_amount = float(base_amount_text)
-        protein = float(protein_text)
-        carbs = float(carbs_text)
-        fat = float(fat_text)
-
-        food_database[food_key] = {
-            "base_amount": base_amount,
-            "base_unit": "grams",
-            "protein": protein,
-            "carbs": carbs,
-            "fat": fat
-        }
-        save_food_database(food_database)
+    saved_food = food_database[food_key]
+    base_amount = float(saved_food["base_amount"])
+    protein = float(saved_food["protein"])
+    carbs = float(saved_food["carbs"])
+    fat = float(saved_food["fat"])
 
     multiplier = quantity_consumed / base_amount
 
@@ -681,12 +1074,12 @@ def update_meal():
         "food": food,
         "meal_type": meal_type,
         "quantity_consumed": quantity_consumed,
+        "original_quantity": quantity_input,
+        "unit": unit,
         "base_amount": base_amount,
         "protein": scaled_protein,
         "carbs": scaled_carbs,
         "fat": scaled_fat,
-        "original_quantity": quantity_input,
-        "unit": unit,
         "calories": calories
     }
 
@@ -700,19 +1093,18 @@ def update_meal():
     meals_data[today] = todays_meals
     save_meals(meals_data)
 
-    return build_home_page(message="Meal updated successfully.")
+    return build_diary_page(message="Meal updated successfully.")
 
 @app.route("/save_weight", methods=["POST"])
 def save_weight():
     weight = float(request.form["weight"])
+    weight_date = request.form["weight_date"]
 
     weights_data = load_weights()
-    today = str(date.today())
-
-    weights_data[today] = weight
+    weights_data[weight_date] = weight
     save_weights(weights_data)
 
-    return build_home_page(message="Weight saved successfully.")
+    return build_weight_page(message="Weight saved successfully.")
 
 @app.route("/upload_photo", methods=["POST"])
 def upload_photo():
@@ -747,7 +1139,7 @@ def upload_photo():
 
     file.save(save_path)
 
-    return build_home_page(
+    return build_progress_page(
     message="Photo uploaded successfully.",
     selected_photo_date=today
 )
@@ -759,34 +1151,118 @@ def uploaded_file(filename):
 @app.route("/view_photo", methods=["GET"])
 def view_photo():
     selected_photo_date = request.args.get("photo_date", "")
-    return build_home_page(selected_photo_date=selected_photo_date)
+    return build_progress_page(selected_photo_date=selected_photo_date)
 
-@app.route("/compare_photos", methods=["GET", "POST"])
-def compare_photos():
-    photos_data = load_progress_photos()
+@app.route("/compare_photos_home", methods=["GET"])
+def compare_photos_home():
+    compare_date_1 = request.args.get("compare_date_1", "")
+    compare_date_2 = request.args.get("compare_date_2", "")
 
-    selected_date_1 = None
-    selected_date_2 = None
-    photo_1 = None
-    photo_2 = None
-
-    if request.method == "POST":
-        selected_date_1 = request.form.get("date_1")
-        selected_date_2 = request.form.get("date_2")
-
-        photo_1 = photos_data.get(selected_date_1)
-        photo_2 = photos_data.get(selected_date_2)
-
-    all_dates = sorted(photos_data.keys(), reverse=True)
-
-    return render_template(
-        "compare.html",
-        all_dates=all_dates,
-        selected_date_1=selected_date_1,
-        selected_date_2=selected_date_2,
-        photo_1=photo_1,
-        photo_2=photo_2
+    return build_progress_page(
+        selected_photo_date=compare_date_1,
+        compare_date_1=compare_date_1,
+        compare_date_2=compare_date_2
     )
+
+@app.route("/home")
+def home_page():
+    return build_home_dashboard()
+
+
+@app.route("/diary")
+def diary_page():
+    return build_diary_page()
+
+
+@app.route("/progress")
+def progress_page():
+    return build_progress_page()
+
+
+@app.route("/charts")
+def charts_page():
+    return build_charts_page()
+
+
+@app.route("/more")
+def more_page():
+    return render_template("more.html")
+
+@app.route("/log-meal")
+def log_meal_page():
+    return build_log_meal_page()
+
+@app.route("/weight")
+def weight_page():
+    return build_weight_page()
+
+@app.route("/goal-planner")
+def goal_planner_page():
+    return build_goal_planner_page()
+
+
+@app.route("/calculate-goal-plan", methods=["POST"])
+def calculate_goal_plan_route():
+    goal_type = request.form["goal_type"]
+    current_weight = float(request.form["current_weight"])
+    weeks = int(request.form["weeks"])
+    workout_days = int(request.form["workout_days"])
+
+    plan_result = calculate_goal_plan(goal_type, current_weight, weeks, workout_days)
+
+    return build_goal_planner_page(
+        message="Plan calculated successfully.",
+        plan_result=plan_result
+    )
+
+
+@app.route("/apply_goal_calories", methods=["POST"])
+def apply_goal_calories():
+    target_calories = float(request.form["target_calories"])
+    protein_grams = float(request.form["protein_grams"])
+    fat_grams = float(request.form["fat_grams"])
+    carbs_grams = float(request.form["carbs_grams"])
+
+    goals_data = {
+        "daily_calorie_goal": target_calories,
+        "protein_goal": protein_grams,
+        "carbs_goal": carbs_grams,
+        "fat_goal": fat_grams
+    }
+
+    save_goals(goals_data)
+
+    plan_result = {
+        "target_calories": round(target_calories, 1),
+        "protein_grams": protein_grams,
+        "fat_grams": fat_grams,
+        "carbs_grams": carbs_grams,
+        "weeks": int(request.form["weeks"]),
+        "goal_type": request.form["goal_type"],
+        "workout_days": int(request.form["workout_days"])
+    }
+
+    return build_goal_planner_page(
+        message="Recommended calories and macros applied.",
+        plan_result=plan_result
+    )
+
+@app.route("/add_water", methods=["POST"])
+def add_water():
+    water_data = load_water()
+    selected_date = request.form.get("selected_date", str(date.today()))
+
+    current_glasses = water_data.get(selected_date, 0)
+
+    if current_glasses >= 8:
+        current_glasses = 0
+    else:
+        current_glasses += 1
+
+    water_data[selected_date] = current_glasses
+    save_water(water_data)
+
+    return redirect(url_for("home", date=selected_date))
 
 if __name__ == "__main__":
     app.run(debug=True)

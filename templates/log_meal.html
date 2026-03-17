@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log Meal - Macro Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container page-content">
+        <div class="dashboard-header">
+            <h1>Log Meal</h1>
+        </div>
+
+        {% if message %}
+            <div class="card">
+                <p><strong>{{ message }}</strong></p>
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <h2>Add a Meal</h2>
+            <form method="POST" action="/add_meal">
+                <label>Food Name</label>
+                <input type="text" name="food" id="foodInputAdd" list="foodSuggestions" required>
+
+                <datalist id="foodSuggestions">
+                    {% for food_name in food_names %}
+                        <option value="{{ food_name }}">
+                    {% endfor %}
+                </datalist>
+
+                <label>Meal Type</label>
+                <select name="meal_type" required>
+                    <option value="Breakfast">Breakfast</option>
+                    <option value="Lunch">Lunch</option>
+                    <option value="Dinner">Dinner</option>
+                </select>
+
+                <label>Quantity</label>
+                <input type="number" step="0.1" name="quantity_consumed" required>
+
+                <label>Unit</label>
+                <select name="unit" required>
+                    <option value="g">Grams (g)</option>
+                    <option value="oz">Ounces (oz)</option>
+                    <option value="ml">Milliliters (ml)</option>
+                </select>
+
+                <p><strong>Only fill out the fields below if this is a new food.</strong></p>
+
+                <label>Base Amount for Macros (grams)</label>
+                <input type="number" step="0.1" name="base_amount">
+
+                <label>Protein for Base Amount (g)</label>
+                <input type="number" step="0.1" name="protein">
+
+                <label>Carbs for Base Amount (g)</label>
+                <input type="number" step="0.1" name="carbs">
+
+                <label>Fat for Base Amount (g)</label>
+                <input type="number" step="0.1" name="fat">
+
+                <button type="submit">Add Meal</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="quick-action-overlay" id="quickActionOverlay"></div>
+
+    <div class="quick-action-menu" id="quickActionMenu">
+        <a href="/log-meal">Log Meal</a>
+        <a href="/weight">Enter Weight</a>
+        <a href="/goal-planner">Set Daily Goal</a>
+        <a href="/progress#photo-section">Physique Photos</a>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="/home">Home</a>
+        <a href="/diary">Diary</a>
+        <a href="#" class="plus-button" id="plusButton">+</a>
+        <a href="/charts">Charts</a>
+        <a href="/more">More</a>
+    </div>
+
+    <script>
+        const plusButton = document.getElementById("plusButton");
+        const quickActionMenu = document.getElementById("quickActionMenu");
+        const quickActionOverlay = document.getElementById("quickActionOverlay");
+
+        plusButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            quickActionMenu.classList.toggle("show-menu");
+            quickActionOverlay.classList.toggle("show-overlay");
+        });
+
+        quickActionOverlay.addEventListener("click", function () {
+            quickActionMenu.classList.remove("show-menu");
+            quickActionOverlay.classList.remove("show-overlay");
+        });
+    </script>
+</body>
+</html>

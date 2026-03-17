@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress - Macro Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container page-content">
+        <div class="dashboard-header">
+            <h1>Progress</h1>
+        </div>
+
+        {% if message %}
+            <div class="card">
+                <p><strong>{{ message }}</strong></p>
+            </div>
+        {% endif %}
+
+        <div class="card" id="photo-section">
+            <h2>Physique Progress Photos</h2>
+
+            <form method="POST" action="/upload_photo" enctype="multipart/form-data">
+                <label>Upload Today's Photo</label>
+                <input type="file" name="progress_photo" accept=".jpg,.jpeg,.png,.webp" required>
+                <button type="submit">Upload Photo</button>
+            </form>
+
+            <hr>
+
+            <form method="GET" action="/view_photo">
+                <label>View Single Photo by Date</label>
+                <select name="photo_date" required>
+                    {% if photo_dates %}
+                        {% for photo_date in photo_dates %}
+                            <option value="{{ photo_date }}" {% if selected_photo_date == photo_date %}selected{% endif %}>
+                                {{ photo_date }}
+                            </option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="">No photos uploaded yet</option>
+                    {% endif %}
+                </select>
+                <button type="submit">View Photo</button>
+            </form>
+
+            {% if selected_photo %}
+                <h3>Photo for {{ selected_photo_date }}</h3>
+                <img src="{{ url_for('uploaded_file', filename=selected_photo) }}" alt="Physique Progress Photo" class="progress-photo">
+            {% else %}
+                <p>No photo available for the selected date.</p>
+            {% endif %}
+
+            <hr>
+
+            <form method="GET" action="/compare_photos_home">
+                <label>Compare Photo 1</label>
+                <select name="compare_date_1" required>
+                    {% if photo_dates %}
+                        {% for photo_date in photo_dates %}
+                            <option value="{{ photo_date }}" {% if compare_date_1 == photo_date %}selected{% endif %}>
+                                {{ photo_date }}
+                            </option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="">No photos uploaded yet</option>
+                    {% endif %}
+                </select>
+
+                <label>Compare Photo 2</label>
+                <select name="compare_date_2" required>
+                    {% if photo_dates %}
+                        {% for photo_date in photo_dates %}
+                            <option value="{{ photo_date }}" {% if compare_date_2 == photo_date %}selected{% endif %}>
+                                {{ photo_date }}
+                            </option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="">No photos uploaded yet</option>
+                    {% endif %}
+                </select>
+
+                <button type="submit">Compare Photos</button>
+            </form>
+
+            {% if compare_photo_1 and compare_photo_2 %}
+                <div class="comparison-container">
+                    <div class="comparison-photo-box">
+                        <h3>{{ compare_date_1 }}</h3>
+                        <img src="{{ url_for('uploaded_file', filename=compare_photo_1) }}" alt="Comparison Photo 1" class="progress-photo">
+                    </div>
+
+                    <div class="comparison-photo-box">
+                        <h3>{{ compare_date_2 }}</h3>
+                        <img src="{{ url_for('uploaded_file', filename=compare_photo_2) }}" alt="Comparison Photo 2" class="progress-photo">
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="quick-action-overlay" id="quickActionOverlay"></div>
+
+    <div class="quick-action-menu" id="quickActionMenu">
+        <a href="/log-meal">Log Meal</a>
+        <a href="/weight">Enter Weight</a>
+        <a href="/goal-planner">Set Daily Goal</a>
+        <a href="/progress#photo-section">Physique Photos</a>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="/home">Home</a>
+        <a href="/diary">Diary</a>
+        <a href="#" class="plus-button" id="plusButton">+</a>
+        <a href="/charts">Charts</a>
+        <a href="/more">More</a>
+    </div>
+
+    <script>
+        const plusButton = document.getElementById("plusButton");
+        const quickActionMenu = document.getElementById("quickActionMenu");
+        const quickActionOverlay = document.getElementById("quickActionOverlay");
+
+        plusButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            quickActionMenu.classList.toggle("show-menu");
+            quickActionOverlay.classList.toggle("show-overlay");
+        });
+
+        quickActionOverlay.addEventListener("click", function () {
+            quickActionMenu.classList.remove("show-menu");
+            quickActionOverlay.classList.remove("show-overlay");
+        });
+    </script>
+</body>
+</html>

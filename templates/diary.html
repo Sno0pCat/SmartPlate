@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diary - Macro Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container page-content">
+        <div class="dashboard-header">
+            <h1>Diary</h1>
+        </div>
+
+        {% if message %}
+            <div class="card">
+                <p><strong>{{ message }}</strong></p>
+            </div>
+        {% endif %}
+
+        <div class="diary-top-strip">
+            <div class="diary-strip-box">
+                <div class="strip-title">Goal</div>
+                <div class="strip-value">{{ daily_calorie_goal }}</div>
+            </div>
+
+            <div class="diary-strip-box">
+                <div class="strip-title">Food</div>
+                <div class="strip-value">{{ total_calories }}</div>
+            </div>
+
+            <div class="diary-strip-box">
+                <div class="strip-title">Remaining</div>
+                <div class="strip-value">{{ calories_remaining }}</div>
+            </div>
+        </div>
+
+{% if edit_meal %}
+<div class="card">
+    <h2>Edit Meal</h2>
+
+    <form method="POST" action="/update_meal">
+        <input type="hidden" name="meal_index" value="{{ edit_meal_index }}">
+
+        <label>Food Name</label>
+        <input type="text" name="food" value="{{ edit_meal.food }}" required>
+
+        <label>Meal Type</label>
+        <select name="meal_type" required>
+            <option value="Breakfast" {% if edit_meal.meal_type == "Breakfast" %}selected{% endif %}>Breakfast</option>
+            <option value="Lunch" {% if edit_meal.meal_type == "Lunch" %}selected{% endif %}>Lunch</option>
+            <option value="Dinner" {% if edit_meal.meal_type == "Dinner" %}selected{% endif %}>Dinner</option>
+        </select>
+
+        <label>Quantity</label>
+        <input type="number" step="0.1" name="quantity_consumed" value="{{ edit_meal.original_quantity }}" required>
+
+        <label>Unit</label>
+        <select name="unit" required>
+            <option value="g" {% if edit_meal.unit == "g" %}selected{% endif %}>Grams (g)</option>
+            <option value="oz" {% if edit_meal.unit == "oz" %}selected{% endif %}>Ounces (oz)</option>
+            <option value="ml" {% if edit_meal.unit == "ml" %}selected{% endif %}>Milliliters (ml)</option>
+        </select>
+
+        <button type="submit">Save Changes</button>
+        <a href="/diary">
+            <button type="button">Cancel</button>
+        </a>
+    </form>
+</div>
+{% endif %}
+
+
+        <div class="card">
+            <h2>Today's Meals</h2>
+
+            <h3>Breakfast</h3>
+            {% if breakfast_meals %}
+                <ul class="meal-list">
+                    {% for meal in breakfast_meals %}
+                        <li class="meal-item">
+                            <div class="meal-info">
+                                <strong>{{ meal.food }}</strong>
+                                <div class="meal-meta">
+                                    {{ meal.original_quantity }} {{ meal.unit if meal.unit else "g" }} |
+                                    Protein: {{ meal.protein }}g |
+                                    Carbs: {{ meal.carbs }}g |
+                                    Fat: {{ meal.fat }}g |
+                                    Calories: {{ meal.calories }}
+                                </div>
+                            </div>
+
+                            <div class="meal-actions">
+                                <form method="POST" action="/edit_meal" style="display:inline;">
+                                    <input type="hidden" name="meal_index" value="{{ meal.meal_index }}">
+                                    <button type="submit" class="edit-button">Edit</button>
+                                </form>
+
+                                <form method="POST" action="/delete_meal" style="display:inline;">
+                                    <input type="hidden" name="meal_index" value="{{ meal.meal_index }}">
+                                    <button type="submit" class="delete-button">Delete</button>
+                                </form>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No breakfast meals logged.</p>
+            {% endif %}
+
+            <h3>Lunch</h3>
+            {% if lunch_meals %}
+                <ul class="meal-list">
+                    {% for meal in lunch_meals %}
+                        <li class="meal-item">
+                            <div class="meal-info">
+                                <strong>{{ meal.food }}</strong>
+                                <div class="meal-meta">
+                                    {{ meal.original_quantity }} {{ meal.unit if meal.unit else "g" }} |
+                                    Protein: {{ meal.protein }}g |
+                                    Carbs: {{ meal.carbs }}g |
+                                    Fat: {{ meal.fat }}g |
+                                    Calories: {{ meal.calories }}
+                                </div>
+                            </div>
+
+                            <div class="meal-actions">
+                                <form method="POST" action="/edit_meal" style="display:inline;">
+                                    <input type="hidden" name="meal_index" value="{{ meal.meal_index }}">
+                                    <button type="submit" class="edit-button">Edit</button>
+                                </form>
+
+                                <form method="POST" action="/delete_meal" style="display:inline;">
+                                    <input type="hidden" name="meal_index" value="{{ meal.meal_index }}">
+                                    <button type="submit" class="delete-button">Delete</button>
+                                </form>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No lunch meals logged.</p>
+            {% endif %}
+
+            <h3>Dinner</h3>
+            {% if dinner_meals %}
+                <ul class="meal-list">
+                    {% for meal in dinner_meals %}
+                        <li class="meal-item">
+                            <div class="meal-info">
+                                <strong>{{ meal.food }}</strong>
+                                <div class="meal-meta">
+                                    {{ meal.original_quantity }} {{ meal.unit if meal.unit else "g" }} |
+                                    Protein: {{ meal.protein }}g |
+                                    Carbs: {{ meal.carbs }}g |
+                                    Fat: {{ meal.fat }}g |
+                                    Calories: {{ meal.calories }}
+                                </div>
+                            </div>
+
+                            <div class="meal-actions">
+                                <form method="POST" action="/edit_meal" style="display:inline;">
+                                    <input type="hidden" name="meal_index" value="{{ meal.meal_index }}">
+                                    <button type="submit" class="edit-button">Edit</button>
+                                </form>
+
+                                <form method="POST" action="/delete_meal" style="display:inline;">
+                                    <input type="hidden" name="meal_index" value="{{ meal.meal_index }}">
+                                    <button type="submit" class="delete-button">Delete</button>
+                                </form>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No dinner meals logged.</p>
+            {% endif %}
+        </div>
+    </div>
+
+<div class="quick-action-overlay" id="quickActionOverlay"></div>
+
+<div class="quick-action-menu" id="quickActionMenu">
+    <a href="/log-meal">Log Meal</a>
+    <a href="/weight">Enter Weight</a>
+    <a href="/goal-planner">Set Daily Goal</a>
+    <a href="/progress#photo-section">Physique Photos</a>
+</div>
+
+    <div class="bottom-nav">
+        <a href="/home">Home</a>
+        <a href="/diary">Diary</a>
+        <a href="#" class="plus-button" id="plusButton">+</a>
+        <a href="/charts">Charts</a>
+        <a href="/more">More</a>
+    </div>
+
+    <script>
+    const plusButton = document.getElementById("plusButton");
+    const quickActionMenu = document.getElementById("quickActionMenu");
+    const quickActionOverlay = document.getElementById("quickActionOverlay");
+
+    plusButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        quickActionMenu.classList.toggle("show-menu");
+        quickActionOverlay.classList.toggle("show-overlay");
+    });
+
+    quickActionOverlay.addEventListener("click", function () {
+        quickActionMenu.classList.remove("show-menu");
+        quickActionOverlay.classList.remove("show-overlay");
+    });
+</script>
+
+</body>
+</html>

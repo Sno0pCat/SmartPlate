@@ -68,5 +68,26 @@
         "protein": 3.0,
         "carbs": 33.0,
         "fat": 2.0
+    },
+    "soda": {
+        "base_amount": 160.0,
+        "base_unit": "grams",
+        "protein": 2.0,
+        "carbs": 34.0,
+        "fat": 8.0
+    },
+    "bacon": {
+        "base_amount": 10.0,
+        "base_unit": "grams",
+        "protein": 4.0,
+        "carbs": 4.0,
+        "fat": 5.0
+    },
+    "salmon": {
+        "base_amount": 100.0,
+        "base_unit": "grams",
+        "protein": 30.0,
+        "carbs": 12.0,
+        "fat": 8.0
     }
 }

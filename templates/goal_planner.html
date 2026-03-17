@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goal Planner - Macro Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container page-content">
+        <div class="dashboard-header">
+            <h1>Set Daily Goal</h1>
+        </div>
+
+        {% if message %}
+            <div class="card">
+                <p><strong>{{ message }}</strong></p>
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <h2>Goal Planner</h2>
+
+            <form method="POST" action="/calculate-goal-plan">
+                <label>Goal Type</label>
+                <select name="goal_type" required>
+                    <option value="cut">Cut</option>
+                    <option value="maintain">Maintain</option>
+                    <option value="bulk">Bulk</option>
+                </select>
+
+                <label>Current Weight</label>
+                <input type="number" step="0.1" name="current_weight" required>
+
+                <label>How Many Weeks?</label>
+                <input type="number" name="weeks" min="1" required>
+
+                <label>Workout Days Per Week</label>
+                <input type="number" name="workout_days" min="0" max="7" required>
+
+                <button type="submit">Calculate Plan</button>
+            </form>
+        </div>
+
+        {% if plan_result %}
+        <div class="card">
+            <h2>Recommended Plan</h2>
+
+            <p><strong>Goal Type:</strong> {{ plan_result.goal_type|title }}</p>
+            <p><strong>Time Frame:</strong> {{ plan_result.weeks }} weeks</p>
+            <p><strong>Workout Days:</strong> {{ plan_result.workout_days }}</p>
+
+            <hr>
+
+            <p><strong>Recommended Daily Calories:</strong> {{ plan_result.target_calories }}</p>
+            <p><strong>Protein:</strong> {{ plan_result.protein_grams }}g</p>
+            <p><strong>Fat:</strong> {{ plan_result.fat_grams }}g</p>
+            <p><strong>Carbs:</strong> {{ plan_result.carbs_grams }}g</p>
+
+            <form method="POST" action="/apply_goal_calories">
+                <input type="hidden" name="target_calories" value="{{ plan_result.target_calories }}">
+                <input type="hidden" name="protein_grams" value="{{ plan_result.protein_grams }}">
+                <input type="hidden" name="fat_grams" value="{{ plan_result.fat_grams }}">
+                <input type="hidden" name="carbs_grams" value="{{ plan_result.carbs_grams }}">
+                <input type="hidden" name="weeks" value="{{ plan_result.weeks }}">
+                <input type="hidden" name="goal_type" value="{{ plan_result.goal_type }}">
+                <input type="hidden" name="workout_days" value="{{ plan_result.workout_days }}">
+
+                <button type="submit">Apply Recommended Calories</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="quick-action-overlay" id="quickActionOverlay"></div>
+
+    <div class="quick-action-menu" id="quickActionMenu">
+        <a href="/log-meal">Log Meal</a>
+        <a href="/weight">Enter Weight</a>
+        <a href="/goal-planner">Set Daily Goal</a>
+        <a href="/progress#photo-section">Physique Photos</a>
+    </div>
+
+    <div class="bottom-nav">
+        <a href="/home">Home</a>
+        <a href="/diary">Diary</a>
+        <a href="#" class="plus-button" id="plusButton">+</a>
+        <a href="/charts">Charts</a>
+        <a href="/more">More</a>
+    </div>
+
+    <script>
+        const plusButton = document.getElementById("plusButton");
+        const quickActionMenu = document.getElementById("quickActionMenu");
+        const quickActionOverlay = document.getElementById("quickActionOverlay");
+
+        plusButton.addEventListener("click", function (event) {
+            event.preventDefault();
+            quickActionMenu.classList.toggle("show-menu");
+            quickActionOverlay.classList.toggle("show-overlay");
+        });
+
+        quickActionOverlay.addEventListener("click", function () {
+            quickActionMenu.classList.remove("show-menu");
+            quickActionOverlay.classList.remove("show-overlay");
+        });
+    </script>
+</body>
+</html>

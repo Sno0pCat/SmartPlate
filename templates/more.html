@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>More - Macro Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container page-content">
+        <h1>More</h1>
+        <p>More options coming soon.</p>
+    </div>
+
+<div class="quick-action-overlay" id="quickActionOverlay"></div>
+
+<div class="quick-action-menu" id="quickActionMenu">
+    <a href="/log-meal">Log Meal</a>
+    <a href="/weight">Enter Weight</a>
+    <a href="/goal-planner">Set Daily Goal</a>
+    <a href="/progress#photo-section">Physique Photos</a>
+</div>
+
+    <div class="bottom-nav">
+        <a href="/home">Home</a>
+        <a href="/diary">Diary</a>
+        <a href="#" class="plus-button" id="plusButton">+</a>
+        <a href="/charts">Charts</a>
+        <a href="/more">More</a>
+    </div>
+
+    <script>
+    const plusButton = document.getElementById("plusButton");
+    const quickActionMenu = document.getElementById("quickActionMenu");
+    const quickActionOverlay = document.getElementById("quickActionOverlay");
+
+    plusButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        quickActionMenu.classList.toggle("show-menu");
+        quickActionOverlay.classList.toggle("show-overlay");
+    });
+
+    quickActionOverlay.addEventListener("click", function () {
+        quickActionMenu.classList.remove("show-menu");
+        quickActionOverlay.classList.remove("show-overlay");
+    });
+</script>
+
+</body>
+</html>
