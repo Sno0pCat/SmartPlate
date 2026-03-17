@@ -74,3 +74,46 @@ button {
 button:hover {
     background-color: #43a047;
 }
+
+.card .card {
+    margin-top: 15px;
+    background-color: #f9fafb;
+    box-shadow: none;
+    border: 1px solid #ddd;
+}
+
+.edit-button {
+    background-color: #f0ad4e;
+    color: white;
+    margin-left: 10px;
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+.edit-button:hover {
+    background-color: #ec9a2f;
+}
+
+.delete-button {
+    background-color: #d9534f;
+    color: white;
+    margin-left: 10px;
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+.delete-button:hover {
+    background-color: #c9302c;
+}
+
+.progress-photo {
+    width: 100%;
+    max-width: 300px;
+    margin-top: 15px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+
+hr {
+    margin: 20px 0;
+}

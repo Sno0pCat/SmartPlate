@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Physique Comparison</title>
+</head>
+<body>
+
+<h2>Compare Progress Photos</h2>
+
+<a href="/compare_photos">
+    <button>Compare Progress Photos</button>
+</a>
+
+<form method="POST">
+    <label>Date 1:</label>
+    <select name="date_1" required>
+        {% for d in all_dates %}
+            <option value="{{ d }}">{{ d }}</option>
+        {% endfor %}
+    </select>
+
+    <label>Date 2:</label>
+    <select name="date_2" required>
+        {% for d in all_dates %}
+            <option value="{{ d }}">{{ d }}</option>
+        {% endfor %}
+    </select>
+
+    <button type="submit">Compare</button>
+</form>
+
+<hr>
+
+{% if photo_1 and photo_2 %}
+    <div style="display: flex; gap: 40px;">
+        <div>
+            <h4>{{ selected_date_1 }}</h4>
+            <img src="{{ url_for('static', filename='progress_photos/' + photo_1) }}" width="300">
+        </div>
+
+        <div>
+            <h4>{{ selected_date_2 }}</h4>
+            <img src="{{ url_for('static', filename='progress_photos/' + photo_2) }}" width="300">
+        </div>
+    </div>
+{% endif %}
+
+</body>
+</html>

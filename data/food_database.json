@@ -33,5 +33,40 @@
         "protein": 6.0,
         "carbs": 0.0,
         "fat": 4.0
+    },
+    "rice cake": {
+        "base_amount": 10.0,
+        "base_unit": "grams",
+        "protein": 1.0,
+        "carbs": 7.0,
+        "fat": 0.0
+    },
+    "pancake": {
+        "base_amount": 100.0,
+        "base_unit": "grams",
+        "protein": 20.0,
+        "carbs": 50.0,
+        "fat": 12.0
+    },
+    "steak": {
+        "base_amount": 100.0,
+        "base_unit": "grams",
+        "protein": 50.0,
+        "carbs": 0.0,
+        "fat": 20.0
+    },
+    "chicken and rice": {
+        "base_amount": 300.0,
+        "base_unit": "grams",
+        "protein": 60.0,
+        "carbs": 150.0,
+        "fat": 20.0
+    },
+    "rice": {
+        "base_amount": 100.0,
+        "base_unit": "grams",
+        "protein": 3.0,
+        "carbs": 33.0,
+        "fat": 2.0
     }
 }
