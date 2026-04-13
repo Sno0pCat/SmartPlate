@@ -48,7 +48,11 @@ python app.py
 - Social features (add friends, compare progress)  
 - Machine learning-based calorie and macro recommendations  
 - Cloud storage and user accounts  
-- Full deployment for public access  
+- Full deployment for public access
+
+## Live Demo
+
+https://your-render-link.onrender.com  
 
 ## Author
 
